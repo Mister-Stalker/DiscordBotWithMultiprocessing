@@ -1,0 +1,4 @@
+/venv
+
+# file with token {"token": your_token}
+bot_configs.json5
