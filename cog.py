@@ -1,9 +1,9 @@
-import os
+import asyncio
 import traceback
 
 import discord
 from discord.ext import commands, tasks
-from termcolor import termcolor
+
 import discord_ext.bot as _bot
 
 
@@ -14,11 +14,8 @@ class Cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.bot.sender.send_message(channel=self.bot.logger_channel, message="Main bot running!")
+        # self.bot.sender.send_message(channel=self.bot.logger_channel, message="Main bot running!")
         self.bot.logger.info("initialize")
-
-        os.system('color')
-        print(termcolor.colored("бот запущен и готов к работе", "blue"))
 
         self.sender_loop.start()
 
@@ -26,8 +23,12 @@ class Cog(commands.Cog):
     async def ping(self, ctx: discord.ext.commands.Context):
 
         await ctx.send(f"bot ping {round(self.bot.latency, 4)}s")
+        try:
+            a = 1 / 0
+        except:
+            self.bot.logger.error(exc=traceback.format_exc())
 
-    async def parse_command(self, d: dict):
+    async def parse_command(self, d: dict) -> None:
 
         # initialize views
         if "kwargs" in d["body"].keys():
@@ -46,19 +47,21 @@ class Cog(commands.Cog):
                     except:
                         pass
 
-    @tasks.loop(seconds=0.5)
-    async def sender_loop(self):
+    @tasks.loop(seconds=0.1)
+    async def sender_loop(self) -> None:
         while not self.bot.sender_q.empty():
             t = self.bot.sender_q.get()
             try:
 
-                print(f"[sender_loop] send {t}")
-            except:
-                print(f"[sender_loop] send (can`t print)")
+                self.bot.logger.info(f"parse {t}")
+            except Exception as e:
+                self.bot.logger.warning(f"parse (can`t print) {e}")
             try:
                 await self.parse_command(t)
             except:
-                traceback.print_exc()
+                self.bot.logger.error(f"Error in sender_loop \n {traceback.format_exc()}")
+
+            await asyncio.sleep(0.05)  # for correct work
 
 
 async def setup(bot: _bot.Bot) -> None:

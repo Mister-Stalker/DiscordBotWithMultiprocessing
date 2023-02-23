@@ -1,7 +1,8 @@
+import datetime
 import multiprocessing
 
-import json5 as json
 import discord.ext.commands
+from colorama import Fore, Style
 
 from discord_ext import configs
 
@@ -49,13 +50,16 @@ class Logger:
     def _send_message(self,
                       channel: int,
                       message=None, *_, **kwargs):
+        mess = kwargs
+        if message:
+            mess["content"] = message
+
         self.q.put(
             {
                 "type": "send_mess",
                 "body": {
-                    channel: {
-                        "content": f"{message}",
-                    }}
+                    channel: mess
+                }
             }
         )
 
@@ -66,27 +70,52 @@ class Logger:
             return self.log_channels.get("default")
         return None
 
-    def error(self, message="", embed_text=""):
-        if self.debug_level >= ERROR:
+    def error(self, message="", embed_text="", tb="", exc="", force_send=False):
+        if self.debug_level >= ERROR or force_send:
 
             if (channel_id := self._get_channel_id("error")) and self.send_to_discord and self.q is not None:
-                self._send_message(channel_id, f"[ERROR] [{self.name}] {message}")
+                embed = discord.Embed(title=f"{self.name}", colour=discord.Colour.red())
+                embed.add_field(name="error", value=f"{message}", inline=False)
+                if tb:
+                    embed.add_field(name="Traceback",
+                                    value=f"{tb}",
+                                    inline=False)
+                if exc:
+                    embed.add_field(name="Traceback",
+                                    value=f"{exc}",
+                                    inline=False)
+                embed.set_footer(text=f"{datetime.datetime.now().strftime('%d.%m.%Y, %H:%M:%S')}")
+                self._send_message(channel_id, embed=embed)
             if self.show_prints:
-                print(f"[ERROR] [{self.name}] {message}")
+                print(Fore.RED + Style.BRIGHT + f"[ERROR]:[{self.name}]: {message}")
+                if tb:
+                    print(tb)
+                if exc:
+                    print(exc)
+                print(Style.RESET_ALL, end="")
 
-    def warning(self, message="", embed_text=""):
-        if self.debug_level >= WARNING:
+    def warning(self, message="", embed_text="", force_send=False):
+        if self.debug_level >= WARNING or force_send:
             if (channel_id := self._get_channel_id("warning")) and self.send_to_discord and self.q is not None:
-                self._send_message(channel_id, f"[WARNING] [{self.name}] {message}")
-            if self.show_prints:
-                print(f"[WARNING] [{self.name}] {message}")
+                embed = discord.Embed(title=f"{self.name}", colour=discord.Colour.yellow())
+                embed.add_field(name="warning", value=f"{message}", inline=False)
 
-    def info(self, message="", embed_text=""):
-        if self.debug_level >= INFO:
-            if (channel_id := self._get_channel_id("info")) and self.send_to_discord and self.q is not None:
-                self._send_message(channel_id, f"[INFO] [{self.name}] {message}")
+                embed.set_footer(text=f"{datetime.datetime.now().strftime('%d.%m.%Y, %H:%M:%S')}")
+                self._send_message(channel_id, embed=embed)
             if self.show_prints:
-                print(f"[INFO] [{self.name}] {message}")
+                print(Fore.YELLOW + f"[WARNING]:[{self.name}]: {message}")
+                print(Style.RESET_ALL, end="")
+
+    def info(self, message="", embed_text="", force_send=False):
+        if self.debug_level >= INFO or force_send:
+            if (channel_id := self._get_channel_id("info")) and self.send_to_discord and self.q is not None:
+                embed = discord.Embed(title=f"{self.name}", colour=discord.Colour.green())
+                embed.add_field(name="info", value=f"{message}", inline=False)
+                embed.set_footer(text=f"{datetime.datetime.now().strftime('%d.%m.%Y, %H:%M:%S')}")
+                self._send_message(channel_id, embed=embed)
+            if self.show_prints:
+                print(Fore.CYAN + f"[INFO]:[{self.name}]: {message}")
+                print(Style.RESET_ALL, end="")
 
 
 def create_logger(

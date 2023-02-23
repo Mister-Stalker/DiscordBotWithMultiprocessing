@@ -1,10 +1,8 @@
 import asyncio
-import os
 import traceback
 
 import discord
 import json5 as json
-import termcolor as termcolor
 from discord.ext import commands, tasks
 
 from discord_ext import logger
@@ -20,8 +18,8 @@ class Cog(commands.Cog):
         # self.bot.sender.send_message(channel=self.bot.logger_channel, message="Logger bot running!")
         self.bot.logger.info("initialize")
 
-        os.system('color')
-        print(termcolor.colored("logger бот запущен и готов к работе", "blue"))
+        # os.system('color')
+        # print(termcolor.colored("logger бот запущен и готов к работе", "blue"))
 
         self.sender_loop.start()
 
@@ -30,9 +28,10 @@ class Cog(commands.Cog):
 
         await ctx.send(f'bot ping {round(self.bot.latency, 4)}s. This is a "logger" bot')
 
-    async def parse_command(self, d: dict):
+    async def parse_command(self, d: dict) -> None:
 
         # initialize views
+
         if "kwargs" in d["body"].keys():
             if "view" in d["body"]["kwargs"].keys():
                 if type(d["body"]["kwargs"]["view"]) == type:
@@ -45,6 +44,8 @@ class Cog(commands.Cog):
             case "send_mess":
                 for c, mess in d["body"].items():
                     try:
+                        if "embed" in mess.keys():
+                            mess["embed"].set_author(name=f"Logger", icon_url=self.bot.user.avatar.url)
                         print(c, mess)
                         await self.bot.get_channel(int(c)).send(**mess)
                     except:
@@ -52,7 +53,7 @@ class Cog(commands.Cog):
                         pass
 
     @tasks.loop(seconds=0.5)
-    async def sender_loop(self):
+    async def sender_loop(self) -> None:
         while not self.bot.q.empty():
             t = self.bot.q.get()
             try:
@@ -63,6 +64,7 @@ class Cog(commands.Cog):
             try:
                 await self.parse_command(t)
             except:
+                self.bot.logger.error(f"Error in sender_loop \n {traceback.format_exc()}")
                 traceback.print_exc()
 
 
