@@ -1,3 +1,3 @@
 # DiscordBotWithMultiprocessing
-Bot for discord on pythyon with multiprocessing 
+Bot for discord on python with multiprocessing 
 ...

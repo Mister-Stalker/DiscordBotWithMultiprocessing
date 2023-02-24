@@ -1,12 +1,13 @@
 import asyncio
 import multiprocessing
 
+import json5 as json
 import discord
 from discord.ext import commands
-import json5 as json
 
-from discord_ext import configs
+from discord_ext import configs, logger, message_sender
 from discord_ext import bot as _bot
+from discord_ext import function_manager as fm
 
 
 async def load_ext(bot: _bot.Bot):
@@ -16,23 +17,25 @@ async def load_ext(bot: _bot.Bot):
     [bot.function_manager.load_extension(extension) for extension in extensions]
 
 
-def main(sender,
-         function_manager,
-         manager,
+def main(sender: message_sender.Sender,
+         function_manager: fm.FunctionManager,
          configs_manager: configs.ConfigsManager,
          logger_queue: multiprocessing.Queue,
-         main_logger,
-         queues, **kwargs):
+         main_logger: logger.Logger,
+         worker_queue: multiprocessing.Queue,
+         queues,
+         **kwargs):
+
     bot = _bot.Bot(sender=sender,
-                   function_manager=function_manager,
-                   manager=manager,
+                   f_manager=function_manager,
                    configs_manager=configs_manager,
                    logger_queue=logger_queue,
-                   logger=main_logger,
+                   logger_=main_logger,
                    queues=queues,
                    # discord Bot settings
                    command_prefix=commands.when_mentioned_or('-'),
                    case_insensitive=True,
+                   worker_queue=worker_queue,
                    intents=discord.Intents.all()
                    )
 

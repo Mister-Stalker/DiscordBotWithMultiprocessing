@@ -1,9 +1,12 @@
-import multiprocessing
 import traceback
 
 import json5 as json
 
 config_list_default = {"logger": "log_config.json5"}
+
+
+def get_json(filename):
+    return json.load(open(filename, encoding="UTF-8"), encoding="UTF-8")
 
 
 class ConfigsManager:
@@ -16,7 +19,8 @@ class ConfigsManager:
 
 
 def init_configs(configs_proxy,
-                 configs_list: dict = None, ):
+                 configs_list: dict = None,
+                 ):
     configs_list = configs_list if configs_list is not None else config_list_default
     for name, file in config_list_default.items():
         try:

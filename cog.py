@@ -1,10 +1,38 @@
 import asyncio
+import time
 import traceback
 
 import discord
 from discord.ext import commands, tasks
 
 import discord_ext.bot as _bot
+
+
+async def some_cpu_test(interaction: discord.Interaction, bot, n=1000000, ):
+    # print("some cpu test")
+    sn = n
+    t = time.time()
+    while n:
+        n -= 1
+    await interaction.edit_original_response(content=f"some cpu test ({sn}) end in {time.time() - t:4f}s in {bot.name}")
+
+
+class TestCog(commands.GroupCog, name="test"):
+    def __init__(self, bot) -> None:
+        self.bot = bot
+        super().__init__()
+
+    @discord.app_commands.command(name="test")
+    async def test_t(self, interaction: discord.Interaction):
+        # print(interaction)
+        self.bot.worker_queue.put({
+            "type": "app_command",
+            "task": {
+                "function": some_cpu_test,
+                "args": [interaction.interaction_data, 500000000],
+            }
+        })
+        await interaction.response.send_message("its work!", ephemeral=True)
 
 
 class Cog(commands.Cog):
@@ -27,6 +55,12 @@ class Cog(commands.Cog):
             a = 1 / 0
         except:
             self.bot.logger.error(exc=traceback.format_exc())
+
+    @commands.command()
+    async def init(self, ctx: discord.ext.commands.Context):
+        self.bot.tree.copy_global_to(guild=ctx.guild)
+        await self.bot.tree.sync(guild=ctx.guild)
+        await ctx.send(f"command initialized!")
 
     async def parse_command(self, d: dict) -> None:
 
@@ -66,3 +100,4 @@ class Cog(commands.Cog):
 
 async def setup(bot: _bot.Bot) -> None:
     await bot.add_cog(Cog(bot))
+    await bot.add_cog(TestCog(bot))

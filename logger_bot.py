@@ -1,8 +1,8 @@
 import asyncio
 import traceback
 
-import discord
 import json5 as json
+import discord
 from discord.ext import commands, tasks
 
 from discord_ext import logger
@@ -15,17 +15,18 @@ class Cog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        # self.bot.sender.send_message(channel=self.bot.logger_channel, message="Logger bot running!")
         self.bot.logger.info("initialize")
-
-        # os.system('color')
-        # print(termcolor.colored("logger бот запущен и готов к работе", "blue"))
-
         self.sender_loop.start()
+
+    @commands.Cog.listener("on_error")
+    async def on_error(self, event, *args, **kwargs):
+        if isinstance(event, discord.ext.commands.CommandNotFound):
+            ...
+        else:
+            raise event
 
     @commands.command()
     async def ping(self, ctx: discord.ext.commands.Context):
-
         await ctx.send(f'bot ping {round(self.bot.latency, 4)}s. This is a "logger" bot')
 
     async def parse_command(self, d: dict) -> None:
@@ -46,7 +47,7 @@ class Cog(commands.Cog):
                     try:
                         if "embed" in mess.keys():
                             mess["embed"].set_author(name=f"Logger", icon_url=self.bot.user.avatar.url)
-                        print(c, mess)
+                        # print(c, mess)
                         await self.bot.get_channel(int(c)).send(**mess)
                     except:
                         traceback.print_exc()
@@ -57,15 +58,9 @@ class Cog(commands.Cog):
         while not self.bot.q.empty():
             t = self.bot.q.get()
             try:
-
-                print(f"[sender_loop] send {t}")
-            except:
-                print(f"[sender_loop] send (can`t print)")
-            try:
                 await self.parse_command(t)
             except:
-                self.bot.logger.error(f"Error in sender_loop \n {traceback.format_exc()}")
-                traceback.print_exc()
+                self.bot.logger.error(f"Error in sender_loop", tb=traceback.format_exc())
 
 
 async def load_ext(bot: logger.LoggingBot):

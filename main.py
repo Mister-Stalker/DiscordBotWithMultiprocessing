@@ -1,19 +1,12 @@
 import multiprocessing
-import time
 
 import bot
 import logger_bot
-from discord_ext import configs, logger, message_sender
+from discord_ext import configs, logger, message_sender, worker_proceses
 from discord_ext import function_manager as fm
 
-
-def test(conf_proxy):
-    print(conf_proxy.config_proxy)
-    print(type(conf_proxy.config_proxy))
-    time.sleep(1)
-    print(conf_proxy.config_proxy)
-    time.sleep(1)
-    print(conf_proxy.config_proxy)
+# fast settings
+SUB_BOTS_COUNT = 8  # count of sub bots (worker processes)
 
 
 def main():
@@ -31,6 +24,7 @@ def main():
 
     # loggers
     logger_queue = manager.Queue()
+    main_namespace.logger_queue = logger_queue
     main_logger = logger.create_logger(configs_manager=configs_manager,
                                        name="main",
                                        q=logger_queue)
@@ -43,11 +37,14 @@ def main():
 
     # sender
     sender_queue = manager.Queue()
+    main_namespace.sender_queue = sender_queue
     sender = message_sender.Sender(q=sender_queue)
 
     # function manager
     function_manager = fm.FunctionManager(sender=sender, _logger=fm_logger)
 
+    worker_queue = manager.Queue()
+    main_namespace.worker_queue = worker_queue
     # create kwargs for processes
 
     kwargs = dict(
@@ -60,10 +57,9 @@ def main():
         main_logger=main_logger,
         sender_queue=sender_queue,
         sender=sender,
-
         function_manager=function_manager,
         log_q=logger_queue,
-
+        worker_queue=worker_queue,
     )
 
     # create processes
@@ -74,7 +70,11 @@ def main():
         # logger bot process
         multiprocessing.Process(target=logger_bot.main, kwargs=kwargs, name="main_bot_thread"),
     ]
-
+    processes.extend(worker_proceses.get_procs(count=SUB_BOTS_COUNT,
+                                               worker_q=worker_queue,
+                                               bot_token=configs.get_json("bot_configs.json5")["token"],
+                                               logger_q=logger_queue,
+                                               configs_manager=configs_manager))
     [p.start() for p in processes]
     [p.join() for p in processes]
 
