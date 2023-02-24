@@ -11,8 +11,8 @@ from discord_ext import function_manager as fm
 
 
 async def load_ext(bot: _bot.Bot):
-    cogs = ["cog"]
-    extensions = ["thread_funcs"]
+    cogs = ["cog", "test_cog"]
+    extensions = ["test_cog_funcs"]
     [await bot.load_extension(cog) for cog in cogs]
     [bot.function_manager.load_extension(extension) for extension in extensions]
 

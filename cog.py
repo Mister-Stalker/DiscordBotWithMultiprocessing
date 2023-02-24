@@ -51,10 +51,10 @@ class Cog(commands.Cog):
     async def ping(self, ctx: discord.ext.commands.Context):
 
         await ctx.send(f"bot ping {round(self.bot.latency, 4)}s")
-        try:
-            a = 1 / 0
-        except:
-            self.bot.logger.error(exc=traceback.format_exc())
+        # try:
+        #     a = 1 / 0
+        # except:
+        #     self.bot.logger.error(exc=traceback.format_exc())
 
     @commands.command()
     async def init(self, ctx: discord.ext.commands.Context):

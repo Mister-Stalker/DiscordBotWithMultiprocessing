@@ -1,5 +1,9 @@
+import functools
 import importlib
 import logging
+import traceback
+
+import discord
 
 from discord_ext import message_sender, logger
 
@@ -47,3 +51,31 @@ class FunctionManager:
             return self.__getattribute__(cls).__getattribute__(func)
         except:
             raise FunctionNotFound
+
+
+def connect_func(name=None):
+    def decorator(func):
+        @functools.wraps(func)
+        async def wrapper(cog_self, interaction: discord.Interaction, *args, **kwargs):
+            await func(cog_self, interaction, *args, **kwargs)
+            _name = name
+            if not _name:
+                _name = f"{type(cog_self).__name__}.{func.__name__}"
+            try:
+                f = cog_self.bot.function_manager.get_func(_name)
+
+                cog_self.bot.worker_queue.put({
+                    "type": "app_command",
+                    "task": {
+                        "function": f,
+                        "args": [interaction.interaction_data],
+                    }
+                })
+
+            except Exception as e:
+
+                traceback.print_exc()
+
+        return wrapper
+
+    return decorator

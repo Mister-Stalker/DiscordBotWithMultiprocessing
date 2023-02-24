@@ -6,7 +6,7 @@ from discord_ext import configs, logger, message_sender, worker_proceses
 from discord_ext import function_manager as fm
 
 # fast settings
-SUB_BOTS_COUNT = 8  # count of sub bots (worker processes)
+SUB_BOTS_COUNT = 2  # count of sub bots (worker processes)
 
 
 def main():

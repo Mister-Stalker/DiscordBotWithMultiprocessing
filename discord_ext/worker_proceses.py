@@ -56,7 +56,10 @@ class Cog(commands.Cog):
     async def sender_loop(self) -> None:
         try:
             if not self.bot.work_q.empty():
-                task = self.bot.work_q.get(timeout=1)  # get task from  queue
+                try:
+                    task = self.bot.work_q.get(timeout=1)  # get task from  queue
+                except:
+                    return
                 if task["type"] == "app_command":  # if it is app_command
                     task = task["task"]
                     interaction_data = task["args"][0]
@@ -64,7 +67,7 @@ class Cog(commands.Cog):
 
                     self.bot.logger.info(f"start function {task['function'].__name__}")
 
-                    coro = task["function"](interaction, self.bot, *task["args"][1:], **task.get("kwargs", {}))
+                    coro = task["function"](self.bot, interaction, *task["args"][1:], **task.get("kwargs", {}))
                     await coro
 
         except Exception as e:
