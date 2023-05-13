@@ -124,6 +124,17 @@ class Logger:
                 print(Fore.CYAN + f"[INFO]:[{self.name}]: {message}")
                 print(Style.RESET_ALL, end="")
 
+    def debug(self, message="", embed_text="", force_send=False):
+        if self.debug_level >= INFO or force_send:
+            if (channel_id := self._get_channel_id("debug")) and self.send_to_discord and self.q is not None:
+                embed = discord.Embed(title=f"{self.name}", colour=discord.Colour.light_gray())
+                embed.add_field(name="debug", value=f"{message}", inline=False)
+                embed.set_footer(text=f"{datetime.datetime.now().strftime('%d.%m.%Y, %H:%M:%S')}")
+                self._send_message(channel_id, embed=embed)
+            if self.show_prints:
+                print(Fore.CYAN + f"[DEBUG]:[{self.name}]: {message}")
+                print(Style.RESET_ALL, end="")
+
 
 def create_logger(
         configs_manager: configs.ConfigsManager,
