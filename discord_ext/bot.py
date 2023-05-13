@@ -2,26 +2,28 @@ import multiprocessing
 
 from discord.ext import commands
 
-from discord_ext import message_sender, configs, function_manager, logger
+import discord_ext
 
 
 class Bot(commands.Bot):
+    """
+    стандартный бот из Discord.py, но с дополнительными полями
+    """
 
     def __init__(self,
-                 sender: message_sender.Sender,
-                 f_manager: function_manager.FunctionManager,
-                 configs_manager: configs.ConfigsManager,
+                 sender: discord_ext.Sender,
+                 f_manager: discord_ext.FunctionManager,
+                 configs_manager: discord_ext.ConfigsManager,
                  logger_queue: multiprocessing.Queue,
-                 logger_: logger.Logger,
+                 logger_: discord_ext.logger.Logger,
                  queues,
                  worker_queue: multiprocessing.Queue,
                  *args, **kwargs):
-
         super().__init__(*args, **kwargs)
 
         self.queues = queues
 
-        self.sender: message_sender.Sender = sender
+        self.sender: discord_ext.Sender = sender
         self.sender_q = sender.q
 
         self.function_manager = f_manager
@@ -32,3 +34,7 @@ class Bot(commands.Bot):
         self.logger_channel = self.logger.log_channels["default"]
 
         self.worker_queue = worker_queue
+
+    @property
+    def connection(self):
+        return self._connection

@@ -1,16 +1,12 @@
-import asyncio
 import traceback
 
-import json5 as json
 import discord
 from discord.ext import commands, tasks
 
-from discord_ext import logger
-
 
 class Cog(commands.Cog):
-    def __init__(self, bot: logger.LoggingBot) -> None:
-        self.bot: logger.LoggingBot = bot
+    def __init__(self, bot) -> None:
+        self.bot = bot
         super().__init__()
 
     @commands.Cog.listener()
@@ -49,7 +45,7 @@ class Cog(commands.Cog):
                             mess["embed"].set_author(name=f"Logger", icon_url=self.bot.user.avatar.url)
                         # print(c, mess)
                         await self.bot.get_channel(int(c)).send(**mess)
-                    except:
+                    except Exception:
                         traceback.print_exc()
                         pass
 
@@ -59,24 +55,5 @@ class Cog(commands.Cog):
             t = self.bot.q.get()
             try:
                 await self.parse_command(t)
-            except:
+            except Exception:
                 self.bot.logger.error(f"Error in sender_loop", tb=traceback.format_exc())
-
-
-async def load_ext(bot: logger.LoggingBot):
-    await bot.add_cog(Cog(bot=bot))
-
-
-def main(log_q, logger_bot_logger, configs_manager, **kwargs):
-    bot = logger.LoggingBot(
-        log_q=log_q,
-        logger=logger_bot_logger,
-        configs_manager=configs_manager,
-        # discord Bot settings
-        command_prefix=commands.when_mentioned_or('#'),
-        case_insensitive=True,
-        intents=discord.Intents.all()
-    )
-
-    asyncio.run(load_ext(bot))
-    bot.run(json.load(open("bot_configs.json5", encoding="UTF-8"), encoding="UTF-8")["logger_token"])

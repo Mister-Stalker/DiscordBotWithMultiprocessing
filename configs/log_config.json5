@@ -7,6 +7,6 @@
 
   },
   "show_prints": true,
-  "send_to_discord": true,
+  "send_to_discord": false,
   "debug_level": 3,
 }

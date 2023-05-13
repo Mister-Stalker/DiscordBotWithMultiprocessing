@@ -14,7 +14,14 @@ INFO = 3
 
 
 class Logger:
-    __slots__ = ["q", "debug_level", "name", "show_prints", "send_to_discord", "log_channels"]
+    __slots__ = [
+        "q",
+        "debug_level",
+        "name",
+        "show_prints",
+        "send_to_discord",
+        "log_channels",
+    ]
 
     def __init__(self,
                  log_channels: dict = None,
@@ -133,15 +140,3 @@ def create_logger(
                   send_to_discord=configs_manager.logger["send_to_discord"],
                   debug_level=configs_manager.logger["debug_level"] if debug_level is None else debug_level
                   )
-
-
-class LoggingBot(discord.ext.commands.Bot):
-    def __init__(self,
-                 log_q: multiprocessing.Queue,
-                 logger,
-                 configs_manager,
-                 *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.q = log_q
-        self.logger = logger
-        self.configs_manager = configs_manager,

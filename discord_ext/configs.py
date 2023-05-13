@@ -2,7 +2,7 @@ import traceback
 
 import json5 as json
 
-config_list_default = {"logger": "log_config.json5"}
+config_list_default = {"logger": "configs\\log_config.json5"}
 
 
 def get_json(filename):
@@ -10,6 +10,13 @@ def get_json(filename):
 
 
 class ConfigsManager:
+    """
+    класс для удобства работы с configs_proxy
+    """
+    __slots__ = [
+        "configs_proxy",
+    ]
+
     def __init__(self, configs_proxy):
         self.configs_proxy = configs_proxy
 
@@ -21,6 +28,12 @@ class ConfigsManager:
 def init_configs(configs_proxy,
                  configs_list: dict = None,
                  ):
+    """
+    инициализация конфигов
+    :param configs_proxy: прокси конфигов
+    :param configs_list: словарь конфигов, по умолчанию None (берется config_list_default)
+    :return:
+    """
     configs_list = configs_list if configs_list is not None else config_list_default
     for name, file in config_list_default.items():
         try:

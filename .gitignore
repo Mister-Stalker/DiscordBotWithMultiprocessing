@@ -1,4 +1,4 @@
 /venv
 
-# file with token {"token": your_token}
+# file with token {"token": your_main_token, "logger_token": your_logger_bot_token}
 bot_configs.json5

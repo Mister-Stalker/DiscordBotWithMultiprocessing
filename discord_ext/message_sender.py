@@ -2,7 +2,7 @@ import multiprocessing
 
 
 class Sender:
-    __slots__ = ["q"]
+    __slots__ = ["q", ]
     q: multiprocessing.Queue
 
     def __init__(self, q: multiprocessing.Queue):
